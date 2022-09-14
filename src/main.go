@@ -7,6 +7,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"sync/atomic"
 	"time"
 )
 
@@ -40,14 +41,18 @@ var Menu = []MenuItem{
 	{Id: 13, Name: "Tobacco Chicken", PrepTime: 30 * TIMEUNIT},
 }
 
-var OrderID = 0
+var OrderID uint64
+
+func incOrderID() uint64 {
+	return atomic.AddUint64(&OrderID, 1)
+}
 
 func createOrder(NrOfItems int) (order Order) {
 	s1 := rand.NewSource(time.Now().UnixNano())
 	r1 := rand.New(s1)
 
-	OrderID = (OrderID + 1) % 100000
-	order.Id = OrderID
+	//OrderID = (OrderID + 1) % 100000
+	order.Id = int(incOrderID())
 
 	var MaxPrepTime = 0
 	for i := 0; i < NrOfItems; i++ {
