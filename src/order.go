@@ -6,10 +6,21 @@ import (
 	"time"
 )
 
+type PreparedFood struct {
+	FoodId int `json:"food_id"`
+	CookId int `json:"cook_id"`
+}
+
 type Order struct {
-	Id      int   `json:"order_id"`
-	Items   []int `json:"items"`
-	MaxWait int   `json:"max_wait"`
+	Id             int            `json:"order_id"`
+	Items          []int          `json:"items"`
+	MaxWait        int            `json:"max_wait"`
+	TableId        int            `json:"table_id"`
+	WaiterId       int            `json:"waiter_id"`
+	Priority       int            `json:"priority"`
+	PickUpTime     time.Time      `json:"pick_up_time"`
+	CookingDetails []PreparedFood `json:"cooking_details"`
+	CookingTime    int            `json:"cooking_time"`
 }
 
 var OrderID uint64
@@ -27,8 +38,8 @@ func createOrder(NrOfItems int) (order Order) {
 	var MaxPrepTime = 0
 	for i := 0; i < NrOfItems; i++ {
 		order.Items = append(order.Items, r1.Intn(13)+1)
-		if Menu[order.Items[i]-1].PrepTime > MaxPrepTime {
-			MaxPrepTime = Menu[order.Items[i]-1].PrepTime
+		if menu[order.Items[i]-1].PreparationTime > MaxPrepTime {
+			MaxPrepTime = menu[order.Items[i]-1].PreparationTime
 		}
 	}
 
