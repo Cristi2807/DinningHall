@@ -1,13 +1,15 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 )
+
+const TIMEUNIT int = 300
+const NrOfTables = 5
+const NrOfWaiters = 3
 
 func getDistribution(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/distribution" {
@@ -20,34 +22,31 @@ func getDistribution(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Printf("got /distribution request\n\n")
-}
+	var order Order
+	json.NewDecoder(r.Body).Decode(&order)
 
-func sendPostRequest() {
-	postBody, _ := json.Marshal(map[string]string{
-		"name":  "Toby",
-		"email": "Toby@example.com",
-	})
-	responseBody := bytes.NewBuffer(postBody)
-
-	http.Post("http://kitchen:8010/order", "application/json", responseBody)
-}
-
-func check() {
-	for {
-		sendPostRequest()
-		time.Sleep(3 * time.Second)
-
-	}
+	jobsGive[order.WaiterId] <- order
 }
 
 func main() {
 	http.HandleFunc("/distribution", getDistribution)
 
-	go check()
+	ParseMenu()
 
-	fmt.Printf("Server DinningHall started on PORT 8020\n")
+	InitWaiterChs()
+	InitTables()
+
+	for i := 0; i < NrOfWaiters; i++ {
+		go HandleWaiter(i, jobsTake, jobsGive[i])
+	}
+
+	for i := 0; i < NrOfTables; i++ {
+		go HandleTable(i)
+	}
+
+	fmt.Printf("Server Dinning-Hall started on PORT 8020\n")
 	if err := http.ListenAndServe(":8020", nil); err != nil {
 		log.Fatal(err)
 	}
+
 }
