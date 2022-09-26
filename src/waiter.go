@@ -18,19 +18,22 @@ func InitWaiterChs() {
 }
 
 func ReceiveOrderFromTable(tableNr, waiterId int) {
-	tables[tableNr].m.Lock()
-	defer tables[tableNr].m.Unlock()
 
-	tables[tableNr].wantsToOrder = false
-	tables[tableNr].waitingOrder = true
-	tables[tableNr].order = createOrder(4)
-	tables[tableNr].order.TableId = tableNr
-	tables[tableNr].order.WaiterId = waiterId
-	tables[tableNr].order.PickUpTime = time.Now()
+	value, _ := tables.Load(tableNr)
+	table := value.(Table)
+
+	table.wantsToOrder = false
+	table.waitingOrder = true
+	table.order = createOrder(4)
+	table.order.TableId = tableNr
+	table.order.WaiterId = waiterId
+	table.order.PickUpTime = time.Now().UnixMilli()
+
+	tables.Store(tableNr, table)
 
 	time.Sleep(time.Duration(2*TIMEUNIT) * time.Millisecond)
 
-	orderMarshalled, _ := json.Marshal(tables[tableNr].order)
+	orderMarshalled, _ := json.Marshal(table.order)
 	responseBody := bytes.NewBuffer(orderMarshalled)
 
 	http.Post("http://kitchen:8010/order", "application/json", responseBody)
@@ -38,10 +41,12 @@ func ReceiveOrderFromTable(tableNr, waiterId int) {
 }
 
 func GiveOrderToTable(order Order) {
-	tables[order.TableId].m.Lock()
-	defer tables[order.TableId].m.Unlock()
+	value, _ := tables.Load(order.TableId)
+	table := value.(Table)
 
-	tables[order.TableId].orderReceived = true
+	table.orderReceived = true
+
+	tables.Store(order.TableId, table)
 }
 
 func HandleWaiter(WaiterId int, jobsTake <-chan int, jobsGive <-chan Order) {
