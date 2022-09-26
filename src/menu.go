@@ -19,8 +19,4 @@ func ParseMenu() {
 	menuFile, _ := os.Open("menu.json")
 	jsonParser := json.NewDecoder(menuFile)
 	jsonParser.Decode(&menu)
-
-	for i := 0; i < len(menu); i++ {
-		menu[i].PreparationTime *= TIMEUNIT
-	}
 }

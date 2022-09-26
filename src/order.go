@@ -18,7 +18,7 @@ type Order struct {
 	TableId        int            `json:"table_id"`
 	WaiterId       int            `json:"waiter_id"`
 	Priority       int            `json:"priority"`
-	PickUpTime     time.Time      `json:"pick_up_time"`
+	PickUpTime     int64          `json:"pick_up_time"`
 	CookingDetails []PreparedFood `json:"cooking_details"`
 	CookingTime    int            `json:"cooking_time"`
 }
@@ -43,7 +43,7 @@ func createOrder(NrOfItems int) (order Order) {
 		}
 	}
 
-	order.MaxWait = int(float32(MaxPrepTime) * 1.3)
+	order.MaxWait = int(float32(MaxPrepTime) * 1.3 * float32(TIMEUNIT))
 
 	return
 }
